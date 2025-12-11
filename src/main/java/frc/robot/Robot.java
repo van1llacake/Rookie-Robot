@@ -10,7 +10,16 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -19,21 +28,38 @@ import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
  */
 public class Robot extends TimedRobot {
   private final DifferentialDrive m_robotDrive;
-  private final Joystick m_leftStick;
-  private final Joystick m_rightStick;
+  // private final Joystick m_leftStick;
+  // private final Joystick m_rightStick;
   private double startTime; 
-  private final PWMSparkMax m_leftMotor = new PWMSparkMax(0);
-  private final PWMSparkMax m_rightMotor = new PWMSparkMax(1);
+  // private final PWMSparkMax m_leftMotor = new PWMSparkMax(0);
+  // private final PWMSparkMax m_rightMotor = new PWMSparkMax(1);
+  private final SparkMax m_leftMotor = new SparkMax(0, MotorType.kBrushless);
+  private final SparkMax m_rightMotor = new SparkMax(1, MotorType.kBrushless);
+  private final CommandXboxController driverController = new CommandXboxController(0);
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
    */
   public Robot() {
-    m_rightMotor.setInverted(true);
+    // m_rightMotor.setInverted(true);
+    SparkMaxConfig rightConfig = new SparkMaxConfig();
+    rightConfig
+      .inverted(true)
+      .idleMode(IdleMode.kBrake);
+
+    SparkMaxConfig leftConfig = new SparkMaxConfig();
+      leftConfig
+        .inverted(false)
+        .idleMode(IdleMode.kBrake);
+
+    m_rightMotor.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_leftMotor.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     m_robotDrive = new DifferentialDrive(m_leftMotor::set, m_rightMotor::set);
-    m_leftStick = new Joystick(0);
-    m_rightStick = new Joystick(1);
+    // m_leftStick = new Joystick(0);
+    // m_rightStick = new Joystick(1);
+    
 
     SendableRegistry.addChild(m_robotDrive, m_leftMotor);
     SendableRegistry.addChild(m_robotDrive, m_rightMotor);
@@ -68,8 +94,10 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
    // Read joystick Y-axes (forward = positive)
-   double leftRaw  = -m_leftStick.getRawAxis(1);
-   double rightRaw = -m_rightStick.getRawAxis(1);
+  //  double leftRaw  = -m_leftStick.getRawAxis(1);
+  //  double rightRaw = -m_rightStick.getRawAxis(1);
+    double leftRaw  = -driverController.getLeftY();
+    double rightRaw = -driverController.getRightX();
 
    // Compute speed and turn for arcade-style tank reconstruction
    double speed = (leftRaw + rightRaw) / 2.0 * 0.6;  // 60% max forward/back
