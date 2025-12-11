@@ -4,8 +4,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -17,7 +19,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
+import com.revrobotics.sim.SparkMaxSim;
 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
@@ -33,8 +35,11 @@ public class Robot extends TimedRobot {
   private double startTime; 
   // private final PWMSparkMax m_leftMotor = new PWMSparkMax(0);
   // private final PWMSparkMax m_rightMotor = new PWMSparkMax(1);
-  private final SparkMax m_leftMotor = new SparkMax(0, MotorType.kBrushless);
-  private final SparkMax m_rightMotor = new SparkMax(1, MotorType.kBrushless);
+  private final SparkMax m_leftMotor;
+  private final SparkMax m_rightMotor;
+  private  SparkMaxSim m_leftMotorSim = null;
+  private  SparkMaxSim m_rightMotorSim = null;
+
   private final CommandXboxController driverController = new CommandXboxController(0);
 
   /**
@@ -42,6 +47,16 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
   public Robot() {
+    
+
+    m_leftMotor = new SparkMax(0, MotorType.kBrushless);
+    m_rightMotor = new SparkMax(1, MotorType.kBrushless);
+
+    if (!RobotBase.isReal()){
+      m_leftMotorSim = new SparkMaxSim(m_leftMotor, DCMotor.getNEO(1));
+      m_rightMotorSim = new SparkMaxSim(m_rightMotor, DCMotor.getNEO(1));
+    }
+
     // m_rightMotor.setInverted(true);
     SparkMaxConfig rightConfig = new SparkMaxConfig();
     rightConfig
@@ -100,8 +115,11 @@ public class Robot extends TimedRobot {
     double rightRaw = -driverController.getRightX();
 
    // Compute speed and turn for arcade-style tank reconstruction
-   double speed = (leftRaw + rightRaw) / 2.0 * 0.6;  // 60% max forward/back
-   double turn  = (leftRaw - rightRaw) / 2.0 * 0.3;  // 30% max turnp
+  //  double speed = (leftRaw + rightRaw) / 2.0 * 0.6;  // 60% max forward/back
+  //  double turn  = (leftRaw - rightRaw) / 2.0 * 0.3;  // 30% max turnp
+    double speed = leftRaw * 1;
+    double turn  = rightRaw * 0.5;
+
    
    // Compute left and right motor powers
    double leftPower  = speed + turn;
